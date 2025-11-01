@@ -58,29 +58,35 @@
 
 ## 快速开始
 
-### 方式1: Docker（推荐）
+### 方式1: Docker部署
 
-1. 克隆项目并进入目录
+1. **构建镜像**
 ```bash
-cd cloudflare-manager
+docker build -t cloudflare-manager:latest .
 ```
 
-2. 创建环境变量文件
+2. **运行容器**
 ```bash
-cp .env.example .env
-# 编辑.env文件，至少修改JWT_SECRET
+docker run -d \
+  --name cloudflare-manager \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/data \
+  -e JWT_SECRET=your-secret-key \
+  -e NODE_ENV=production \
+  cloudflare-manager:latest
 ```
 
-3. 启动服务
+3. **使用docker-compose（推荐）**
 ```bash
+# 编辑docker-compose.yml配置环境变量
 docker-compose up -d
-```
 
-4. 访问应用
-```
-http://localhost:3000
-```
+# 查看日志
+docker-compose logs -f
 
+# 停止服务
+docker-compose down
+```
 ### 方式2: 本地开发
 
 **环境要求**:
@@ -167,37 +173,6 @@ cp data/data.db data/data.db.backup
 docker-compose up -d
 ```
 
-## 部署
-
-### Docker生产部署
-
-1. **构建镜像**
-```bash
-docker build -t cloudflare-manager:latest .
-```
-
-2. **运行容器**
-```bash
-docker run -d \
-  --name cloudflare-manager \
-  -p 3000:3000 \
-  -v $(pwd)/data:/app/data \
-  -e JWT_SECRET=your-secret-key \
-  -e NODE_ENV=production \
-  cloudflare-manager:latest
-```
-
-3. **使用docker-compose（推荐）**
-```bash
-# 编辑docker-compose.yml配置环境变量
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-```
 
 ### 传统部署
 
