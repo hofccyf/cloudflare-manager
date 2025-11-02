@@ -33,6 +33,32 @@ export function createAccountsRouter(db: Database.Database): Router {
     }
   });
 
+  // 导出所有账号配置
+  router.get('/export', (req: AuthRequest, res: Response) => {
+    try {
+      const accounts = db.prepare('SELECT * FROM accounts ORDER BY created_at DESC').all() as any[];
+
+      const exportLines: string[] = [];
+      accounts.forEach(row => {
+        if (row.auth_type === 'token' && row.api_token) {
+          exportLines.push(`${row.account_id},${row.api_token}`);
+        } else if (row.auth_type === 'email-key' && row.auth_email && row.auth_key) {
+          exportLines.push(`${row.account_id},${row.auth_email},${row.auth_key}`);
+        }
+      });
+
+      const exportContent = exportLines.join('\n');
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `cloudflare-accounts-${timestamp}.txt`;
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(exportContent);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // 获取单个账号
   router.get('/:id', (req: AuthRequest, res: Response) => {
     try {
@@ -222,6 +248,7 @@ export function createAccountsRouter(db: Database.Database): Router {
       res.status(500).json({ error: error.message });
     }
   });
+
 
   // 健康检查账号（使用获取子域接口）
   router.post('/:id/health-check', async (req: AuthRequest, res: Response) => {
